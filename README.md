@@ -84,3 +84,11 @@ npm.cmd run build
 ## Arquivos versionados
 
 Codigo, configuracoes, lockfile, scripts, testes e SQL de estrutura/demonstracao. Credenciais, dependencias, caches, builds, logs e backups ficam fora do Git. Configure segredos diretamente na hospedagem.
+
+## Contas da equipe
+
+A conta responsavel acessa **Contas da equipe** no menu do painel (`/admin/contas`). Permite criar contas com e-mail e senha, desativar, reativar e excluir acessos da equipe. A conta responsavel e protegida contra exclusao/desativacao.
+
+Em novos ambientes aplique tambem `supabase/migrations/202610310003_admin_accounts.sql` e publique a Edge Function `admin-accounts` com verificacao JWT ativada. A funcao usa a chave privilegiada interna do Supabase; nao exige adiciona-la a Vercel. Somente responsaveis ativos podem executar operacoes. A desativacao revoga o acesso aos dados mesmo para sessoes existentes.
+
+A conta inicial e criada diretamente no ambiente Supabase, sem senha no codigo, seed ou repositorio. Em outro banco, crie uma conta Auth pelo Dashboard e autorize como `owner` conforme as instrucoes acima.

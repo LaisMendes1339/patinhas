@@ -12,7 +12,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     </section>
     <section className="admin-login-form" aria-labelledby="login-title"><div className="admin-card"><span className="service-icon"><LockKeyhole/></span><div className="eyebrow">ESPAÇO DA EQUIPE</div><h2 id="login-title">Entre no seu painel</h2><p className="muted">Use o e-mail e a senha da sua conta autorizada.</p>
       {error && <p role="alert" className="error">{error === 'config' ? 'Não foi possível conectar. Confira a configuração e a conexão com o Supabase.' : error === 'role' ? 'Sua conta não possui autorização administrativa.' : 'Não foi possível entrar. Confira seu e-mail e senha.'}</p>}
-      <form action={login}><label>E-mail<input name="email" type="email" autoComplete="username" required/></label><label>Senha<input name="password" type="password" minLength={8} autoComplete="current-password" required/></label><button className="button">Entrar no painel</button></form><p className="muted login-help">O acesso é liberado pelo responsável do petshop.</p>
+      <form action={login}><label>E-mail<input name="email" type="email" autoComplete="username" required/></label><label>Senha<input name="password" type="password" minLength={8} autoComplete="current-password" enterKeyHint="go" required/></label><button type="submit" className="button">Entrar no painel</button></form><p className="muted login-help">O acesso é liberado pelo responsável do petshop.</p>
     </div></section>
   </main>;
 }
