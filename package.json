@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/availability.test.mjs tests/booking-gateway.test.mjs tests/request-origin.test.mjs tests/admin-summary.test.mjs tests/admin-accounts.test.mjs tests/admin-period.test.mjs tests/admin-calendar.test.mjs",
+    "test": "node --test tests/availability.test.mjs tests/booking-gateway.test.mjs tests/request-origin.test.mjs tests/admin-summary.test.mjs tests/admin-accounts.test.mjs tests/admin-period.test.mjs tests/admin-calendar.test.mjs tests/admin-data.test.mjs",
     "preview": "node scripts/preview.mjs",
     "check:supabase": "node scripts/check-supabase.mjs",
     "test:integration": "node --test --test-concurrency=1 tests/database.test.mjs"

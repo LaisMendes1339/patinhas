@@ -65,3 +65,21 @@ test('removes orphan auth account if authorization fails and hides upstream erro
  assert.equal(m.calls.at(-1).method, 'DELETE');
  assert.deepEqual(await response.json(), { error: 'FAILED' });
 });
+
+test('listing uses bounded parallel requests and preserves the account order', async () => {
+ let running = 0, peak = 0;
+ const rows = Array.from({ length: 18 }, (_, index) => ({ user_id: `account-${index}`, role: 'staff', active: true }));
+ const api = async path => {
+  if (path === '/auth/v1/user') return { id: owner };
+  if (path.includes(`user_id=eq.${owner}`)) return [{ role: 'owner', active: true }];
+  if (path.startsWith('/rest/v1/admin_users?select=')) return rows;
+  running++; peak = Math.max(peak, running);
+  await new Promise(resolve => setTimeout(resolve, 5));
+  running--;
+  return { email: `${path.split('/').at(-1)}@example.com` };
+ };
+ const result = await handleAccounts(request({ operation: 'list' }), api);
+ assert.equal(result.status, 200);
+ assert.equal(peak, 8);
+ assert.deepEqual((await result.json()).accounts.map(row => row.user_id), rows.map(row => row.user_id));
+});

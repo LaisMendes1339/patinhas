@@ -17,9 +17,13 @@ export async function handleAccounts(request, api) {
   if (body.operation === 'list') {
    const rows = await api('/rest/v1/admin_users?select=user_id,role,active&order=user_id');
    const accounts = [];
-   for (const row of rows) {
-    const account = await api(`/auth/v1/admin/users/${row.user_id}`);
-    accounts.push({ ...row, email: account.email ?? account.user?.email ?? '' });
+   // Bounded parallelism avoids an N-request serial waterfall without flooding Auth.
+   for (let offset = 0; offset < rows.length; offset += 8) {
+    const batch = await Promise.all(rows.slice(offset, offset + 8).map(async row => {
+     const account = await api(`/auth/v1/admin/users/${row.user_id}`);
+     return { ...row, email: account.email ?? account.user?.email ?? '' };
+    }));
+    accounts.push(...batch);
    }
    return reply({ accounts });
   }

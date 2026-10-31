@@ -44,7 +44,9 @@ export async function saveRecord(form:FormData){
  if(!parsed.success) redirect(destination(form,'settings','error=invalid'));
  const id=form.get('id');if(id&&!uuid.safeParse(id).success) redirect(destination(form,'settings','error=invalid'));
  const values:Record<string,unknown>=parsed.data;
- const result=entity==='booking_settings'?await db.from(entity).update(values).eq('id',true):id?await db.from(entity).update(values).eq('id',id):await db.from(entity).insert(values);
+ const service=entity==='professionals'&&!id?uuid.safeParse(form.get('service_id')):null;
+ if(service&&!service.success)redirect(destination(form,'registrations','error=invalid'));
+ const result=service?.success?await db.rpc('create_professional_with_service',{p_name:values.name,p_service:service.data}):entity==='booking_settings'?await db.from(entity).update(values).eq('id',true):id?await db.from(entity).update(values).eq('id',id):await db.from(entity).insert(values);
  if(result.error) redirect(destination(form,'settings','error=save'));
  revalidateTag('catalog',{expire:0});revalidatePath('/admin');revalidatePath('/');redirect(destination(form,'settings','saved=1'));
 }

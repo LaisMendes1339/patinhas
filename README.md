@@ -100,3 +100,13 @@ O painel abre no mes atual. Em **Visao geral**, os indicadores separam o valor d
 Os filtros de mes, dia, sete dias ou intervalo personalizado, profissional e servico se aplicam tanto aos graficos quanto a agenda. O intervalo personalizado aceita ate um ano. Os valores sao calculados pela data do atendimento e pelo preco gravado na reserva; nao representam caixa recebido nem lucro liquido.
 
 A agenda possui busca por cliente, pet, e-mail ou referencia e filtro por situacao. Os cadastros ficam em abas de clientes, profissionais, servicos e pets, com busca, paginacao e edicao. Clientes e pets sao consultados em lotes para evitar o antigo limite de 100 registros. Os precos sao informados em reais e armazenados em centavos. Nao ha nova migration para esta reformulacao visual.
+
+## Cadastro de profissionais
+
+A aba Profissionais apresenta uma tabela com nome, servicos vinculados e status. O botao de olho abre as acoes para editar o nome, ativar/desativar o profissional e adicionar ou remover vinculos de servico. A busca considera nome e servicos.
+
+Novos profissionais exigem nome e um servico ativo. A migration `supabase/migrations/202610310004_professional_service.sql` cria a funcao `create_professional_with_service`, que grava profissional e vinculo na mesma transacao, com as permissoes do administrador autenticado. Aplique esta migration em novos ambientes antes de usar o cadastro atualizado.
+
+## Desempenho do administrativo
+
+A analise e as otimizacoes estao em [docs/ADMIN_PERFORMANCE.md](docs/ADMIN_PERFORMANCE.md). Cada tela consulta apenas os dados necessarios; o menu e o cabecalho aparecem antes das consultas de conteudo. Para diagnostico na Vercel, ative temporariamente `ADMIN_PERF_LOGS=true` e publique novamente. Os logs incluem somente tela, numero de consultas, tempo e indicacao de falha, sem dados pessoais.
