@@ -3,6 +3,19 @@ import { requireAdmin } from '@/lib/admin';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+
+function destination(form:FormData, fallback:string, feedback:string){
+ const query=new URLSearchParams();
+ const current=String(form.get('return_query')??'');
+ if(current.length<=2000){const original=new URLSearchParams(current);for(const key of ['date','view','month','from','to','professional','service']){const value=original.get(key);if(value)query.set(key,value);}}
+ const tab=String(form.get('return_tab')??'');
+ const tabs:Record<string,string>={customers:'customers',pets:'pets',professionals:'professionals',services:'services',professional_services:'professionals'};
+ query.set('section',tabs[tab]?'registrations':fallback);
+ if(tabs[tab])query.set('tab',tabs[tab]);
+ const [key,value]=feedback.split('=');query.set(key,value);
+ return '/admin?'+query.toString();
+}
+
 const uuid=z.uuid();
 const text=z.string().trim().min(1).max(200);
 const nullableUuid=z.preprocess(v=>v===''?null:v,uuid.nullable());
@@ -19,36 +32,42 @@ const definitions={
 };
 export async function saveRecord(form:FormData){
  const {db,role}=await requireAdmin();const entity=String(form.get('entity')) as keyof typeof definitions;
- if(!(entity in definitions)) redirect('/admin?error=invalid');
- if(entity==='booking_settings'&&role!=='owner') redirect('/admin?error=forbidden');
- const parsed=definitions[entity].safeParse(Object.fromEntries(form));
- if(!parsed.success) redirect('/admin?error=invalid');
- const id=form.get('id');if(id&&!uuid.safeParse(id).success) redirect('/admin?error=invalid');
+ if(!(entity in definitions)) redirect(destination(form,'settings','error=invalid'));
+ if(entity==='booking_settings'&&role!=='owner') redirect(destination(form,'settings','error=forbidden'));
+ const input=Object.fromEntries(form);
+ if(entity==='services'&&form.has('price_reais')){
+  const price=z.string().regex(/^\d{1,6}([.,]\d{1,2})?$/).safeParse(form.get('price_reais'));
+  if(!price.success)redirect(destination(form,'registrations','error=invalid'));
+  input.price_cents=String(Math.round(Number(price.data.replace(',','.'))*100));
+ }
+ const parsed=definitions[entity].safeParse(input);
+ if(!parsed.success) redirect(destination(form,'settings','error=invalid'));
+ const id=form.get('id');if(id&&!uuid.safeParse(id).success) redirect(destination(form,'settings','error=invalid'));
  const values:Record<string,unknown>=parsed.data;
  const result=entity==='booking_settings'?await db.from(entity).update(values).eq('id',true):id?await db.from(entity).update(values).eq('id',id):await db.from(entity).insert(values);
- if(result.error) redirect('/admin?error=save');
- revalidateTag('catalog',{expire:0});revalidatePath('/admin');revalidatePath('/');redirect('/admin?saved=1');
+ if(result.error) redirect(destination(form,'settings','error=save'));
+ revalidateTag('catalog',{expire:0});revalidatePath('/admin');revalidatePath('/');redirect(destination(form,'settings','saved=1'));
 }
 export async function changeAppointment(form:FormData){
  const {db}=await requireAdmin();const id=uuid.safeParse(form.get('id'));const action=z.enum(['cancel','reschedule','complete']).safeParse(form.get('action'));
- if(!id.success||!action.success) redirect('/admin?error=invalid');
+ if(!id.success||!action.success) redirect(destination(form,'agenda','error=invalid'));
  let values:Record<string,string>={status:action.data==='cancel'?'cancelled':'completed'};
- if(action.data==='reschedule'){const start=z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).safeParse(form.get('starts_at'));if(!start.success)redirect('/admin?error=invalid');values={starts_at:new Date(`${start.data}:00-03:00`).toISOString()};}
+ if(action.data==='reschedule'){const start=z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).safeParse(form.get('starts_at'));if(!start.success)redirect(destination(form,'agenda','error=invalid'));values={starts_at:new Date(`${start.data}:00-03:00`).toISOString()};}
  const {error}=await db.from('appointments').update(values).eq('id',id.data);
- if(error)redirect('/admin?error=slot');
- revalidatePath('/admin');redirect('/admin?saved=1');
+ if(error)redirect(destination(form,'agenda','error=slot'));
+ revalidatePath('/admin');redirect(destination(form,'agenda','saved=1'));
 }
 export async function removeAvailability(form:FormData){
  const {db}=await requireAdmin();
  const entity=z.enum(['working_hours','availability_exceptions','professional_services']).safeParse(form.get('entity'));
  const id=uuid.safeParse(form.get('id'));
- if(!entity.success||!id.success)redirect('/admin?error=invalid');
+ if(!entity.success||!id.success)redirect(destination(form,'settings','error=invalid'));
  const serviceId=entity.data==='professional_services'?uuid.safeParse(form.get('service_id')):null;
- if(serviceId&&!serviceId.success)redirect('/admin?error=invalid');
+ if(serviceId&&!serviceId.success)redirect(destination(form,'settings','error=invalid'));
  const query=entity.data==='professional_services'
  ?db.from(entity.data).delete().eq('professional_id',id.data).eq('service_id',serviceId?.data)
  :db.from(entity.data).delete().eq('id',id.data);
  const {error}=await query;
- if(error)redirect('/admin?error=save');
- revalidatePath('/admin');redirect('/admin?saved=1');
+ if(error)redirect(destination(form,'settings','error=save'));
+ revalidatePath('/admin');redirect(destination(form,'settings','saved=1'));
 }

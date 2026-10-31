@@ -68,7 +68,7 @@ Detalhes de tabelas, RLS e concorrencia: [docs/DATABASE_REVIEW.md](docs/DATABASE
 - `/admin/login`: entrada da equipe.
 - `/admin`: agenda, indicadores financeiros, cadastros e disponibilidade.
 
-Revise contatos e depoimentos ficticios antes do lancamento. O financeiro apresenta valores das reservas, sem registrar pagamentos recebidos. Clientes e pets exibem ate 100 registros no painel. As fotos usam URLs externas do Unsplash.
+Revise contatos e depoimentos ficticios antes do lancamento. O financeiro apresenta valores das reservas, sem registrar pagamentos recebidos. As fotos usam URLs externas do Unsplash.
 
 ## Verificacoes
 
@@ -92,3 +92,11 @@ A conta responsavel acessa **Contas da equipe** no menu do painel (`/admin/conta
 Em novos ambientes aplique tambem `supabase/migrations/202610310003_admin_accounts.sql` e publique a Edge Function `admin-accounts` com verificacao JWT ativada. A funcao usa a chave privilegiada interna do Supabase; nao exige adiciona-la a Vercel. Somente responsaveis ativos podem executar operacoes. A desativacao revoga o acesso aos dados mesmo para sessoes existentes.
 
 A conta inicial e criada diretamente no ambiente Supabase, sem senha no codigo, seed ou repositorio. Em outro banco, crie uma conta Auth pelo Dashboard e autorize como `owner` conforme as instrucoes acima.
+
+## Painel visual e filtros
+
+O painel abre no mes atual. Em **Visao geral**, os indicadores separam o valor dos servicos concluidos, a previsao das reservas confirmadas, o total de atendimentos ativos e o ticket medio. O grafico de evolucao permite consultar os valores de cada coluna. Os rankings de servicos e profissionais alternam entre quantidade de atendimentos e valores. Cancelamentos aparecem separadamente.
+
+Os filtros de mes, dia, sete dias ou intervalo personalizado, profissional e servico se aplicam tanto aos graficos quanto a agenda. O intervalo personalizado aceita ate um ano. Os valores sao calculados pela data do atendimento e pelo preco gravado na reserva; nao representam caixa recebido nem lucro liquido.
+
+A agenda possui busca por cliente, pet, e-mail ou referencia e filtro por situacao. Os cadastros ficam em abas de clientes, profissionais, servicos e pets, com busca, paginacao e edicao. Clientes e pets sao consultados em lotes para evitar o antigo limite de 100 registros. Os precos sao informados em reais e armazenados em centavos. Nao ha nova migration para esta reformulacao visual.

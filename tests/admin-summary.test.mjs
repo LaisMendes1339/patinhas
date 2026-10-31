@@ -15,6 +15,20 @@ test('separa previsão, concluídos e cancelados usando o preço de cada reserva
  assert.deepEqual(result.byProfessional, [{name: 'Ana', count: 2, total: 16000}, {name: 'Bia', count: 1, total: 5000}]);
 });
 
+test('agrupa a evolução pelo dia local e separa os valores concluídos e previstos', () => {
+ const base = { services: { name: 'Banho' }, professionals: { name: 'Ana' } };
+ const result = summarizeAppointments([
+  { ...base, starts_at: '2026-11-01T01:00:00Z', status: 'completed', price_cents: 6000 },
+  { ...base, starts_at: '2026-10-31T13:00:00Z', status: 'confirmed', price_cents: 8500 },
+  { ...base, starts_at: '2026-10-31T14:00:00Z', status: 'cancelled', price_cents: 13000 },
+  { ...base, starts_at: '2026-11-01T12:00:00Z', status: 'completed', price_cents: 9000 },
+ ]);
+ assert.deepEqual(result.daily, [
+  { day: '2026-10-31', forecast: 8500, completed: 6000, count: 2 },
+  { day: '2026-11-01', forecast: 0, completed: 9000, count: 1 },
+ ]);
+});
+
 test('período vazio e somente cancelamentos não produzem receita nem média inválida', () => {
  for (const items of [[], [{status: 'cancelled', price_cents: 10000, services: null, professionals: null}]]) {
   const result = summarizeAppointments(items);
