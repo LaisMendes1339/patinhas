@@ -110,3 +110,9 @@ Novos profissionais exigem nome e um servico ativo. A migration `supabase/migrat
 ## Desempenho do administrativo
 
 A analise e as otimizacoes estao em [docs/ADMIN_PERFORMANCE.md](docs/ADMIN_PERFORMANCE.md). Cada tela consulta apenas os dados necessarios; o menu e o cabecalho aparecem antes das consultas de conteudo. Para diagnostico na Vercel, ative temporariamente `ADMIN_PERF_LOGS=true` e publique novamente. Os logs incluem somente tela, numero de consultas, tempo e indicacao de falha, sem dados pessoais.
+
+## Popups dos profissionais
+
+Na tabela de profissionais, o olho abre as informacoes, o lapis abre a edicao e a lixeira abre a confirmacao de exclusao. Os popups abrem localmente, mantem o foco dentro da janela e fecham pelo X ou pela tecla Escape. Nome, situacao e vinculos de servicos podem ser alterados dentro da edicao, com mensagens de resultado na propria janela.
+
+A migration `supabase/migrations/202610310005_delete_professional.sql` adiciona a exclusao atomica de profissionais sem historico de reservas, incluindo seus vinculos operacionais. Qualquer agendamento registrado impede a exclusao e preserva o historico; nesses casos, desative o profissional. A migration ja foi aplicada no Supabase conectado nesta sessao.
