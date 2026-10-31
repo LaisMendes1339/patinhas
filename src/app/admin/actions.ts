@@ -7,7 +7,7 @@ import { z } from 'zod';
 function destination(form:FormData, fallback:string, feedback:string){
  const query=new URLSearchParams();
  const current=String(form.get('return_query')??'');
- if(current.length<=2000){const original=new URLSearchParams(current);for(const key of ['date','view','month','from','to','professional','service']){const value=original.get(key);if(value)query.set(key,value);}}
+ if(current.length<=2000){const original=new URLSearchParams(current);for(const key of ['date','view','month','from','to','professional','service','selected_day']){const value=original.get(key);if(value)query.set(key,value);}}
  const tab=String(form.get('return_tab')??'');
  const tabs:Record<string,string>={customers:'customers',pets:'pets',professionals:'professionals',services:'services',professional_services:'professionals'};
  query.set('section',tabs[tab]?'registrations':fallback);
